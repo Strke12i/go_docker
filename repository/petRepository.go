@@ -10,7 +10,7 @@ type PetRepository interface {
 	Update(pet models.Pet) error
 	Delete(pet models.Pet) error
 	FindAll() []models.Pet
-	FindById(id uint) (models.Pet, error)
+	FindById(id string) (models.Pet, error)
 }
 
 type PetRepositoryImpl struct {

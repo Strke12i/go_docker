@@ -2,87 +2,97 @@ package controller
 
 import (
 	"github.com/Strke12i/go_docker/models"
-	"github.com/Strke12i/go_docker/service"
+	"github.com/Strke12i/go_docker/repository"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type PetController struct {
-	PetService service.PetService
+	PetRepository *repository.PetRepository
 }
 
-func NewPetController(petService service.PetService) *PetController {
-	return &PetController{PetService: petService}
+func newPetController(DB *gorm.DB) *PetController {
+	return &PetController{PetRepository: repository.NewPetRepository(DB)}
 }
 
-func (controller *PetController) Create(context *gin.Context) {
+func (controller *PetController) GetAll(c *gin.Context) {
+	pets, err := controller.PetRepository.GetAll()
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(200, pets)
+}
+
+func (controller *PetController) GetByID(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		c.JSON(400, gin.H{"error": "ID is required!"})
+		return
+	}
+
+	pet, err := controller.PetRepository.GetByID(id)
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(200, pet)
+}
+
+func (controller *PetController) Create(c *gin.Context) {
 	var pet models.Pet
-	err := context.ShouldBindJSON(&pet)
+	err := c.ShouldBindJSON(&pet)
 	if err != nil {
-		context.JSON(400, gin.H{"error": err.Error()})
+		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
 
-	err = controller.PetService.Create(pet)
+	pet, err = controller.PetRepository.Create(pet)
 	if err != nil {
-		context.JSON(400, gin.H{"error": err.Error()})
+		c.JSON(500, gin.H{"error": err.Error()})
 		return
 	}
 
-	context.JSON(200, gin.H{"data": pet})
+	c.JSON(200, pet)
 }
 
-func (controller *PetController) Update(context *gin.Context) {
+func (controller *PetController) Update(c *gin.Context) {
 	var pet models.Pet
-	err := context.ShouldBindJSON(&pet)
+	err := c.ShouldBindJSON(&pet)
 	if err != nil {
-		context.JSON(400, gin.H{"error": err.Error()})
+		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
 
-	err = controller.PetService.Update(pet)
+	pet, err = controller.PetRepository.Update(pet)
 	if err != nil {
-		context.JSON(400, gin.H{"error": err.Error()})
+		c.JSON(500, gin.H{"error": err.Error()})
 		return
 	}
 
-	context.JSON(200, gin.H{"data": pet})
+	c.JSON(200, pet)
 }
 
-func (controller *PetController) Delete(context *gin.Context) {
-	var pet models.Pet
-	err := context.ShouldBindJSON(&pet)
-	if err != nil {
-		context.JSON(400, gin.H{"error": err.Error()})
+func (controller *PetController) Delete(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		c.JSON(400, gin.H{"error": "ID is required!"})
 		return
 	}
 
-	err = controller.PetService.Delete(pet)
+	err := controller.PetRepository.Delete(id)
 	if err != nil {
-		context.JSON(400, gin.H{"error": err.Error()})
+		c.JSON(500, gin.H{"error": err.Error()})
 		return
 	}
 
-	context.JSON(200, gin.H{"data": pet})
+	c.JSON(200, gin.H{"message": "Pet deleted successfully!"})
 }
 
-func (controller *PetController) FindAll(context *gin.Context) {
-	pets, err := controller.PetService.FindAll()
-	if err != nil {
-		context.JSON(400, gin.H{"error": err.Error()})
-		return
-	}
-
-	context.JSON(200, gin.H{"data": pets})
-}
-
-func (controller *PetController) FindById(context *gin.Context) {
-	if id, ok := context.Params.Get("id"); ok {
-		pet, err := controller.PetService.FindById(id)
-		if err != nil {
-			context.JSON(400, gin.H{"error": err.Error()})
-			return
-		}
-
-		context.JSON(200, gin.H{"data": pet})
-	}
+func (controller *PetController) RegisterRoutes(router *gin.RouterGroup) {
+	router.GET("/pets", controller.GetAll)
+	router.GET("/pets/:id", controller.GetByID)
+	router.POST("/pets", controller.Create)
+	router.PUT("/pets", controller.Update)
+	router.DELETE("/pets/:id", controller.Delete)
 }

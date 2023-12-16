@@ -5,42 +5,61 @@ import (
 	"gorm.io/gorm"
 )
 
-type PetRepository interface {
-	Save(pet models.Pet) error
-	Update(pet models.Pet) error
-	Delete(pet models.Pet) error
-	FindAll() []models.Pet
-	FindById(id string) (models.Pet, error)
+type petRepository interface {
+	GetAll() ([]models.Pet, error)
+	GetByID(id string) (models.Pet, error)
+	Create(pet models.Pet) (models.Pet, error)
+	Update(pet models.Pet) (models.Pet, error)
+	Delete(id string) error
 }
 
-type PetRepositoryImpl struct {
-	Db *gorm.DB
+type PetRepository struct {
+	DB *gorm.DB
 }
 
-func NewPetRepository(db *gorm.DB) *PetRepositoryImpl {
-	return &PetRepositoryImpl{Db: db}
+func NewPetRepository(DB *gorm.DB) *PetRepository {
+	return &PetRepository{DB: DB}
 }
 
-func (repository *PetRepositoryImpl) Save(pet models.Pet) error {
-	return repository.Db.Create(&pet).Error
-}
-
-func (repository *PetRepositoryImpl) Update(pet models.Pet) error {
-	return repository.Db.Save(&pet).Error
-}
-
-func (repository *PetRepositoryImpl) Delete(pet models.Pet) error {
-	return repository.Db.Delete(&pet).Error
-}
-
-func (repository *PetRepositoryImpl) FindAll() []models.Pet {
+func (repository *PetRepository) GetAll() ([]models.Pet, error) {
 	var pets []models.Pet
-	repository.Db.Find(&pets)
-	return pets
+	err := repository.DB.Find(&pets).Error
+	if err != nil {
+		return nil, err
+	}
+	return pets, nil
 }
 
-func (repository *PetRepositoryImpl) FindById(id uint) (models.Pet, error) {
+func (repository *PetRepository) GetByID(id string) (models.Pet, error) {
 	var pet models.Pet
-	err := repository.Db.Where("id = ?", id).Find(&pet).Error
-	return pet, err
+	err := repository.DB.Where("id = ?", id).First(&pet).Error
+	if err != nil {
+		return models.Pet{}, err
+	}
+	return pet, nil
+}
+
+func (repository *PetRepository) Create(pet models.Pet) (models.Pet, error) {
+	err := repository.DB.Create(&pet).Error
+	if err != nil {
+		return models.Pet{}, err
+	}
+	return pet, nil
+}
+
+func (repository *PetRepository) Update(pet models.Pet) (models.Pet, error) {
+	err := repository.DB.Save(&pet).Error
+	if err != nil {
+		return models.Pet{}, err
+	}
+	return pet, nil
+}
+
+func (repository *PetRepository) Delete(id string) error {
+	var pet models.Pet
+	err := repository.DB.Where("id = ?", id).Delete(&pet).Error
+	if err != nil {
+		return err
+	}
+	return nil
 }

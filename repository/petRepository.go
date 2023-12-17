@@ -5,14 +5,6 @@ import (
 	"gorm.io/gorm"
 )
 
-type petRepository interface {
-	GetAll() ([]models.Pet, error)
-	GetByID(id string) (models.Pet, error)
-	Create(pet models.Pet) (models.Pet, error)
-	Update(pet models.Pet) (models.Pet, error)
-	Delete(id string) error
-}
-
 type PetRepository struct {
 	DB *gorm.DB
 }

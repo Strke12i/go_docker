@@ -89,7 +89,8 @@ func (controller *PetController) Delete(c *gin.Context) {
 	c.JSON(200, gin.H{"message": "Pet deleted successfully!"})
 }
 
-func (controller *PetController) RegisterRoutes(router *gin.RouterGroup) {
+func PetRegisterRoutes(router *gin.RouterGroup, DB *gorm.DB) {
+	controller := newPetController(DB)
 	router.GET("/pets", controller.GetAll)
 	router.GET("/pets/:id", controller.GetByID)
 	router.POST("/pets", controller.Create)

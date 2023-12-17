@@ -11,10 +11,11 @@ import (
 
 // ConnectToDatabase function connects to the database
 // and returns the database object
-func ConnectToDatabase() *gorm.DB {
+func ConnectToDatabase() (*gorm.DB, error) {
 
 	if err := godotenv.Load(); err != nil {
-		panic("Failed to load env file!")
+		fmt.Println("No .env file found")
+		return nil, err
 	}
 
 	connectString := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local",
@@ -28,7 +29,8 @@ func ConnectToDatabase() *gorm.DB {
 
 	database, err := gorm.Open(mysql.Open(connectString), &gorm.Config{})
 	if err != nil {
-		panic("Failed to connect to database!")
+		fmt.Println("Could not connect to the database")
+		return nil, err
 	}
 
 	err = database.AutoMigrate(
@@ -37,8 +39,9 @@ func ConnectToDatabase() *gorm.DB {
 		&models.University{})
 
 	if err != nil {
-		panic("Failed to migrate database!")
+		fmt.Println("Could not migrate the database")
+		return nil, err
 	}
 
-	return database
+	return database, nil
 }

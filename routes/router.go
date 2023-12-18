@@ -20,6 +20,7 @@ func Router(DB *gorm.DB) *gin.Engine {
 	})
 
 	controller.PetRegisterRoutes(r, DB)
+	controller.UniversityRegisterRoutes(r, DB)
 
 	return router
 

@@ -36,7 +36,9 @@ func ConnectToDatabase() (*gorm.DB, error) {
 	err = database.AutoMigrate(
 		&models.Pet{},
 		&models.Room{},
-		&models.University{})
+		&models.University{},
+		&models.Professor{},
+		&models.Student{})
 
 	if err != nil {
 		fmt.Println("Could not migrate the database")

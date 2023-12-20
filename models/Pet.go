@@ -6,5 +6,7 @@ type Pet struct {
 	ID           int        `json:"id" gorm:"primary_key"`
 	Name         string     `json:"name" gorm:"not null"`
 	UniversityID int        `json:"university_id" gorm:"not null"`
-	University   University `json:"university" gorm:"foreignKey:UniversityID"`
+	ProfessorCPF string     `json:"professor_cpf" gorm:"not null"`
+	University   University `gorm:"foreignKey:UniversityID"`
+	Professor    Professor  `gorm:"foreignKey:ProfessorCPF"`
 }

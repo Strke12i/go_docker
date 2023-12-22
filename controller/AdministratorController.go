@@ -54,6 +54,12 @@ func (controller *AdministratorController) Create(c *gin.Context) {
 		return
 	}
 
+	err = administrator.BeforeCreate()
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+
 	administrator, err = controller.AdministratorRepository.Create(administrator)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
